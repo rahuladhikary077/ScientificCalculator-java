@@ -1,115 +1,191 @@
-import java.awt.*;
-import java.awt.event.*;
-import javax.script.ScriptEngine;
-import javax.script.ScriptEngineManager;
-import javax.script.ScriptException;
 import javax.swing.*;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 
-public class ScientificCalculator implements ActionListener {
+public class ScientificCalculator extends JFrame implements ActionListener {
 
-    private JFrame frame;
-    private JTextField inputField;
-    private JLabel outputLabel;
-    private JButton[] buttons;
-    private String currentInput;
+    private static final long serialVersionUID = 1L;
+    private JTextField display;
+    private JButton buttons[];
 
-    ScientificCalculator() {
-        frame = new JFrame("Scientific Calculator");
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setSize(400, 500);
-        frame.setLayout(new BorderLayout());
+    public ScientificCalculator() {
+        super("Scientific Calculator Application");
 
-        inputField = new JTextField();
-        inputField.setFont(new Font("Arial", Font.PLAIN, 20));
-        inputField.setHorizontalAlignment(JTextField.RIGHT);
-        inputField.setEditable(false);
+        display = new JTextField("");
+        display.setEditable(false);
+        getContentPane().add(display, BorderLayout.NORTH);
 
-        outputLabel = new JLabel("");
-        outputLabel.setFont(new Font("Arial", Font.PLAIN, 16));
-        outputLabel.setHorizontalAlignment(JLabel.RIGHT);
+        JPanel buttonPanel = new JPanel();
+        buttonPanel.setLayout(new GridLayout(6, 5));
+        String buttonLabels[] = { "7", "8", "9", "/", "C",
+                "4", "5", "6", "*", "sqrt",
+                "1", "2", "3", "-", "1/x",
+                "0", "+/-", ".", "+", "=",
+                "sin", "cos", "tan", "log", "exp" };
 
-        JPanel panel = new JPanel();
-        panel.setLayout(new GridLayout(7, 5, 5, 5));
+        buttons = new JButton[buttonLabels.length];
 
-        buttons = new JButton[]{
-                new JButton("7"), new JButton("8"), new JButton("9"), new JButton("/"), new JButton("sqrt"),
-                new JButton("4"), new JButton("5"), new JButton("6"), new JButton("*"), new JButton("cbrt"),
-                new JButton("1"), new JButton("2"), new JButton("3"), new JButton("-"), new JButton("x^2"),
-                new JButton("0"), new JButton("."), new JButton("(-)"), new JButton("+"), new JButton("="),
-                new JButton("sin"), new JButton("cos"), new JButton("tan"), new JButton("log"), new JButton("exp"),
-                new JButton("asin"), new JButton("acos"), new JButton("atan"), new JButton("log10"), new JButton("x^y"),
-                new JButton("ln"), new JButton("floor"), new JButton("ceil"), new JButton("abs"), new JButton("mod")
-        };
-
-        for (JButton button : buttons) {
-            button.addActionListener(this);
-            button.setFont(new Font("Arial", Font.PLAIN, 16));
-            panel.add(button);
+        for (int i = 0; i < buttonLabels.length; i++) {
+            buttons[i] = new JButton(buttonLabels[i]);
+            buttons[i].addActionListener(this);
+            buttonPanel.add(buttons[i]);
         }
 
-        frame.add(inputField, BorderLayout.NORTH);
-        frame.add(outputLabel, BorderLayout.CENTER);
-        frame.add(panel, BorderLayout.SOUTH);
+        getContentPane().add(buttonPanel, BorderLayout.CENTER);
 
-        currentInput = "";
-        frame.setVisible(true);
     }
 
-    @Override
-    public void actionPerformed(ActionEvent e) {
-        JButton clickedButton = (JButton) e.getSource();
-        String buttonText = clickedButton.getText();
+    public void actionPerformed(ActionEvent event) {
+        String command = event.getActionCommand();
 
-        switch (buttonText) {
-            case "=":
-                calculateResult();
-                break;
-            case "C":
-                clearInput();
-                break;
-            case "(-)":
-                negateInput();
-                break;
-            default:
-                currentInput += buttonText;
-                inputField.setText(currentInput);
-                break;
-        }
-    }
-
-    private void calculateResult() {
-        try {
-            ScriptEngineManager manager = new ScriptEngineManager();
-            ScriptEngine engine = manager.getEngineByName("nashorn");
-            Object result = engine.eval("Math." + currentInput);
-            outputLabel.setText("Result: " + result);
-            clearInput();
-        } catch (ScriptException e) {
-            outputLabel.setText("Error: Invalid Expression");
-            clearInput();
-        }
-    }
-
-    private void clearInput() {
-        currentInput = "";
-        inputField.setText("");
-    }
-
-    private void negateInput() {
-        if (!currentInput.isEmpty()) {
-            char firstChar = currentInput.charAt(0);
-            if (Character.isDigit(firstChar) || firstChar == '.') {
-                currentInput = "-" + currentInput;
-                inputField.setText(currentInput);
+        if (command.equals("C")) {
+            display.setText("");
+        } else if (command.equals("=")) {
+            String expression = display.getText();
+            try {
+                double result = evaluateExpression(expression);
+                display.setText(Double.toString(result));
+            } catch (IllegalArgumentException ex) {
+                display.setText(ex.getMessage());
             }
+        } else if (command.equals("sqrt")) {
+            double value = Double.parseDouble(display.getText());
+            double result = Math.sqrt(value);
+            display.setText(Double.toString(result));
+        } else if (command.equals("1/x")) {
+            double value = Double.parseDouble(display.getText());
+            double result = 1.0 / value;
+            display.setText(Double.toString(result));
+        } else if (command.equals("+/-")) {
+            double value = Double.parseDouble(display.getText());
+            double result = -value;
+            display.setText(Double.toString(result));
+        } else if (command.equals("sin")) {
+            double value = Double.parseDouble(display.getText());
+            double result = Math.sin(value);
+            display.setText(Double.toString(result));
+        } else if (command.equals("cos")) {
+            double value = Double.parseDouble(display.getText());
+            double result = Math.cos(value);
+            display.setText(Double.toString(result));
+        } else if (command.equals("tan")) {
+            double value = Double.parseDouble(display.getText());
+            double result = Math.tan(value);
+            display.setText(Double.toString(result));
+        } else if (command.equals("log")) {
+            double value = Double.parseDouble(display.getText());
+            double result = Math.log10(value);
+            display.setText(Double.toString(result));
+        } else if (command.equals("exp")) {
+            double value = Double.parseDouble(display.getText());
+            double result = Math.exp(value);
+            display.setText(Double.toString(result));
+        } else {
+            display.setText(display.getText() + command);
+        }
+    }
+
+    private double evaluateExpression(String expression) {
+        ExpressionEvaluator evaluator = new ExpressionEvaluator();
+        return evaluator.evaluate(expression);
+    }
+
+    private class ExpressionEvaluator {
+        private String expression;
+        private int index;
+
+        public double evaluate(String expression) {
+            this.expression = expression;
+            index = 0;
+            double result = parseExpression();
+            if (index != expression.length()) {
+                throw new IllegalArgumentException("Invalid expression");
+            }
+            return result;
+        }
+
+        private double parseExpression() {
+            double result = parseTerm();
+            while (index < expression.length()) {
+                char operator = expression.charAt(index);
+                if (operator != '+' && operator != '-') {
+                    break;
+                }
+                index++;
+                double operand = parseTerm();
+                if (operator == '+') {
+                    result += operand;
+                } else {
+                    result -= operand;
+                }
+            }
+            return result;
+        }
+
+        private double parseTerm() {
+            double result = parseFactor();
+            while (index < expression.length()) {
+                char operator = expression.charAt(index);
+                if (operator != '*' && operator != '/') {
+                    break;
+                }
+                index++;
+                double operand = parseFactor();
+                if (operator == '*') {
+                    result *= operand;
+                } else {
+                    result /= operand;
+                }
+            }
+            return result;
+        }
+
+        private double parseFactor() {
+            char ch = expression.charAt(index);
+            if (ch >= '0' && ch <= '9') {
+                return parseNumber();
+            } else if (ch == '(') {
+                index++;
+                double result = parseExpression();
+                if (expression.charAt(index) != ')') {
+                    throw new IllegalArgumentException("Mismatched parentheses");
+                }
+                index++;
+                return result;
+            } else if (ch == '-') {
+                index++;
+                return -parseFactor();
+            } else if (ch == '+') {
+                index++;
+                return parseFactor();
+            } else {
+                throw new IllegalArgumentException("Invalid character: " + ch);
+            }
+        }
+
+        private double parseNumber() {
+            int startIndex = index;
+            while (index < expression.length() && Character.isDigit(expression.charAt(index))) {
+                index++;
+            }
+            if (index < expression.length() && expression.charAt(index) == '.') {
+                index++;
+                while (index < expression.length() && Character.isDigit(expression.charAt(index))) {
+                    index++;
+                }
+            }
+            return Double.parseDouble(expression.substring(startIndex, index));
         }
     }
 
     public static void main(String[] args) {
-        SwingUtilities.invokeLater(new Runnable() {
-            public void run() {
-                new ScientificCalculator();
-            }
-        });
+
+        ScientificCalculator scientificCalculator = new ScientificCalculator();
+
+        scientificCalculator.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        scientificCalculator.setSize(400, 400);
+        scientificCalculator.setVisible(true);
+
     }
 }
